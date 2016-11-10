@@ -12,7 +12,7 @@
 		<script src="three.js"></script>
 		<script>
 			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+			var camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 			var renderer = new THREE.WebGLRenderer();
 			renderer.setSize(window.innerWidth, window.innerHeight);
@@ -59,6 +59,17 @@
 			mars.position.y = initialCoords.y;
 			scene.add(mars);
 
+			// Jupiter
+			sphereGeometry = new THREE.SphereGeometry(4, 18, 8);
+			var jupiterMaterial = new THREE.MeshBasicMaterial({color: 0xd6a024});
+			var jupiter = new THREE.Mesh(sphereGeometry, jupiterMaterial);
+			var jupiterOrbitRadius = 80;
+			var jupiterOrbitAngle = 60;
+			initialCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
+			jupiter.position.x = initialCoords.x;
+			jupiter.position.y = initialCoords.y;
+			scene.add(jupiter);
+
 			camera.position.z = 125;
 
 			function convertPolarToCart(rad, phi) {
@@ -92,6 +103,12 @@
 				var updatedMarsCoords = convertPolarToCart(marsOrbitRadius, marsOrbitAngle);
 				mars.position.x = updatedMarsCoords.x;
 				mars.position.y = updatedMarsCoords.y;
+
+				// Jupiter
+				jupiterOrbitAngle += 0.018;
+				var updatedJupiterCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
+				jupiter.position.x = updatedJupiterCoords.x;
+				jupiter.position.y = updatedJupiterCoords.y;
 
 				renderer.render(scene, camera);
 			}
