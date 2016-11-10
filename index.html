@@ -48,6 +48,17 @@
 			moon.position.y = initialCoords.y;
 			scene.add(moon);
 
+			// Mars
+			sphereGeometry = new THREE.SphereGeometry(1, 18, 8);
+			var marsMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
+			var mars = new THREE.Mesh(sphereGeometry, marsMaterial);
+			var marsOrbitRadius = 60;
+			var marsOrbitAngle = 45;
+			initialCoords = convertPolarToCart(marsOrbitRadius, marsOrbitAngle);
+			mars.position.x = initialCoords.x;
+			mars.position.y = initialCoords.y;
+			scene.add(mars);
+
 			camera.position.z = 125;
 
 			function convertPolarToCart(rad, phi) {
@@ -75,6 +86,12 @@
 				var updatedMoonCoords = convertPolarToCart(moonOrbitRadius, moonOrbitAngle);
 				moon.position.x = updatedMoonCoords.x + earth.position.x;
 				moon.position.y = updatedMoonCoords.y + earth.position.y;
+
+				// Mars orbiting
+				marsOrbitAngle += 0.02;
+				var updatedMarsCoords = convertPolarToCart(marsOrbitRadius, marsOrbitAngle);
+				mars.position.x = updatedMarsCoords.x;
+				mars.position.y = updatedMarsCoords.y;
 
 				renderer.render(scene, camera);
 			}
