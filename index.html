@@ -34,18 +34,22 @@
 			scene.add(sun);
 
 			// Sun light
-			var sunLight = new THREE.PointLight(0xffee88, 1, 100, 2);
-			var sunLightGeometry = new THREE.SphereGeometry(5, 16, 8);
-			var bulbMat = new THREE.MeshStandardMaterial( {
-				emissive: 0xffffee,
-				emissiveIntensity: 1,
-				color: 0x000000
-			});
-			sunLight.add(new THREE.Mesh(sunLightGeometry, bulbMat));
-			sunLight.castShadow = true;
-			sunLight.position.x = 30;
-			sunLight.position.y = 30;
-			scene.add(sunLight);
+//			var sunLight = new THREE.PointLight(0xffee88, 1, 100, 2);
+//			var sunLightGeometry = new THREE.SphereGeometry(5, 16, 8);
+//			var bulbMat = new THREE.MeshStandardMaterial( {
+//				emissive: 0xffffee,
+//				emissiveIntensity: 1,
+//				color: 0x000000
+//			});
+//			sunLight.add(new THREE.Mesh(sunLightGeometry, bulbMat));
+//			sunLight.castShadow = true;
+//			sunLight.position.x = 30;
+//			sunLight.position.y = 30;
+//			scene.add(sunLight);
+
+			var dirLight = new THREE.DirectionalLight(0xffffff, 1);
+			dirLight.position.set(100, 100, 50);
+			scene.add(dirLight);
 
 			// Earth
 			sphereGeometry = new THREE.SphereGeometry(1, 18, 8);
@@ -134,6 +138,8 @@
 				var updatedJupiterCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
 				jupiter.position.x = updatedJupiterCoords.x;
 				jupiter.position.y = updatedJupiterCoords.y;
+
+				controls.update();
 
 				// Camera
 //				camera.position.x += 0.018;
