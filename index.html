@@ -9,13 +9,19 @@
 		</style>
 	</head>
 	<body>
-		<script src="three.js"></script>
+		<script src="js/three.js"></script>
+		<script src="js/OrbitControls.js"></script>
 		<script>
 			var scene = new THREE.Scene();
 			var camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 			var renderer = new THREE.WebGLRenderer();
 			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.shadowMap.enabled = true;
+
+			// Add the orbit controls
+			var controls = new THREE.OrbitControls(camera, renderer.domElement);
+			controls.target = new THREE.Vector3(0, 0, 0);
 
 			document.body.appendChild(renderer.domElement);
 
@@ -24,7 +30,22 @@
 			var sphereGeometry = new THREE.SphereGeometry(10, 18, 8);
 			var material = new THREE.MeshBasicMaterial({color: 0xf7e011});
 			var sun = new THREE.Mesh(sphereGeometry, material);
+			sun.castShadow = true;
 			scene.add(sun);
+
+			// Sun light
+			var sunLight = new THREE.PointLight(0xffee88, 1, 100, 2);
+			var sunLightGeometry = new THREE.SphereGeometry(5, 16, 8);
+			var bulbMat = new THREE.MeshStandardMaterial( {
+				emissive: 0xffffee,
+				emissiveIntensity: 1,
+				color: 0x000000
+			});
+			sunLight.add(new THREE.Mesh(sunLightGeometry, bulbMat));
+			sunLight.castShadow = true;
+			sunLight.position.x = 30;
+			sunLight.position.y = 30;
+			scene.add(sunLight);
 
 			// Earth
 			sphereGeometry = new THREE.SphereGeometry(1, 18, 8);
@@ -35,6 +56,8 @@
 			var initialCoords = convertPolarToCart(earthOrbitRadius, earthOrbitAngle);
 			earth.position.x = initialCoords.x;
 			earth.position.y = initialCoords.y;
+			earth.receiveShadow = true;
+			earth.castShadow = true;
 			scene.add(earth);
 
 			// Moon
@@ -68,6 +91,8 @@
 			initialCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
 			jupiter.position.x = initialCoords.x;
 			jupiter.position.y = initialCoords.y;
+			jupiter.receiveShadow = true;
+			jupiter.castShadow = true;
 			scene.add(jupiter);
 
 			camera.position.z = 125;
@@ -109,6 +134,10 @@
 				var updatedJupiterCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
 				jupiter.position.x = updatedJupiterCoords.x;
 				jupiter.position.y = updatedJupiterCoords.y;
+
+				// Camera
+//				camera.position.x += 0.018;
+//				camera.position.y += 0.018;
 
 				renderer.render(scene, camera);
 			}
