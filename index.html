@@ -13,7 +13,7 @@
 		<script src="js/OrbitControls.js"></script>
 		<script>
 			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.1, 1000);
+			var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 			var renderer = new THREE.WebGLRenderer();
 			renderer.setSize(window.innerWidth, window.innerHeight);
@@ -34,26 +34,12 @@
 			scene.add(sun);
 
 			// Sun light
-//			var sunLight = new THREE.PointLight(0xffee88, 1, 100, 2);
-//			var sunLightGeometry = new THREE.SphereGeometry(5, 16, 8);
-//			var bulbMat = new THREE.MeshStandardMaterial( {
-//				emissive: 0xffffee,
-//				emissiveIntensity: 1,
-//				color: 0x000000
-//			});
-//			sunLight.add(new THREE.Mesh(sunLightGeometry, bulbMat));
-//			sunLight.castShadow = true;
-//			sunLight.position.x = 30;
-//			sunLight.position.y = 30;
-//			scene.add(sunLight);
-
-			var dirLight = new THREE.DirectionalLight(0xffffff, 1);
-			dirLight.position.set(100, 100, 50);
-			scene.add(dirLight);
+			var sunLight = new THREE.PointLight(0xffee88, 1, 0);
+			scene.add(sunLight);
 
 			// Earth
 			sphereGeometry = new THREE.SphereGeometry(1, 18, 8);
-			var earthMaterial = new THREE.MeshBasicMaterial({color: 0x00ff00});
+			var earthMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00});
 			var earth = new THREE.Mesh(sphereGeometry, earthMaterial);
 			var earthOrbitRadius = 40;
 			var earthOrbitAngle = 0;
@@ -66,7 +52,7 @@
 
 			// Moon
 			sphereGeometry = new THREE.SphereGeometry(0.5, 18, 8);
-			var moonMaterial = new THREE.MeshBasicMaterial({color: 0xd8d8d8});
+			var moonMaterial = new THREE.MeshLambertMaterial({color: 0xd8d8d8});
 			var moon = new THREE.Mesh(sphereGeometry, moonMaterial);
 			var moonOrbitRadius = 6;
 			var moonOrbitAngle = 0;
@@ -77,7 +63,7 @@
 
 			// Mars
 			sphereGeometry = new THREE.SphereGeometry(1, 18, 8);
-			var marsMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
+			var marsMaterial = new THREE.MeshLambertMaterial({color: 0xff0000});
 			var mars = new THREE.Mesh(sphereGeometry, marsMaterial);
 			var marsOrbitRadius = 60;
 			var marsOrbitAngle = 45;
@@ -88,7 +74,7 @@
 
 			// Jupiter
 			sphereGeometry = new THREE.SphereGeometry(4, 18, 8);
-			var jupiterMaterial = new THREE.MeshBasicMaterial({color: 0xd6a024});
+			var jupiterMaterial = new THREE.MeshLambertMaterial({color: 0xd6a024});
 			var jupiter = new THREE.Mesh(sphereGeometry, jupiterMaterial);
 			var jupiterOrbitRadius = 80;
 			var jupiterOrbitAngle = 60;
@@ -140,10 +126,6 @@
 				jupiter.position.y = updatedJupiterCoords.y;
 
 				controls.update();
-
-				// Camera
-//				camera.position.x += 0.018;
-//				camera.position.y += 0.018;
 
 				renderer.render(scene, camera);
 			}
