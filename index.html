@@ -28,7 +28,8 @@
 
 			// Sun
 			var sphereGeometry = new THREE.SphereGeometry(10, 18, 8);
-			var material = new THREE.MeshBasicMaterial({color: 0xf7e011});
+			var sunTexture = new THREE.ImageUtils.loadTexture('textures/sun.jpg');
+			var material = new THREE.MeshBasicMaterial({map: sunTexture});
 			var sun = new THREE.Mesh(sphereGeometry, material);
 			sun.castShadow = true;
 			scene.add(sun);
@@ -52,7 +53,8 @@
 
 			// Moon
 			sphereGeometry = new THREE.SphereGeometry(0.5, 18, 8);
-			var moonMaterial = new THREE.MeshLambertMaterial({color: 0xd8d8d8});
+			var moonTexture = THREE.ImageUtils.loadTexture('textures/moon.jpg');
+			var moonMaterial = new THREE.MeshLambertMaterial({map: moonTexture});
 			var moon = new THREE.Mesh(sphereGeometry, moonMaterial);
 			var moonOrbitRadius = 6;
 			var moonOrbitAngle = 0;
@@ -74,7 +76,8 @@
 
 			// Jupiter
 			sphereGeometry = new THREE.SphereGeometry(4, 18, 8);
-			var jupiterMaterial = new THREE.MeshLambertMaterial({color: 0xd6a024});
+			var jupiterTexture = new THREE.ImageUtils.loadTexture('textures/jupiter.jpg');
+			var jupiterMaterial = new THREE.MeshLambertMaterial({map: jupiterTexture});
 			var jupiter = new THREE.Mesh(sphereGeometry, jupiterMaterial);
 			var jupiterOrbitRadius = 80;
 			var jupiterOrbitAngle = 60;
@@ -98,8 +101,7 @@
 				requestAnimationFrame(render);
 
 				// Sun rotation
-				sun.rotation.x += 0.01;
-				sun.rotation.y += 0.02;
+				sun.rotation.z += 0.01;
 
 				// Earth orbiting
 				earthOrbitAngle += 0.01;
