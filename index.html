@@ -11,6 +11,7 @@
 	<body>
 		<script src="js/three.js"></script>
 		<script src="js/OrbitControls.js"></script>
+		<script src="js/planetarium.js"></script>
 		<script>
 			var scene = new THREE.Scene();
 			var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -39,17 +40,8 @@
 			scene.add(sunLight);
 
 			// Earth
-			sphereGeometry = new THREE.SphereGeometry(1, 18, 8);
-			var earthMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00});
-			var earth = new THREE.Mesh(sphereGeometry, earthMaterial);
-			var earthOrbitRadius = 40;
-			var earthOrbitAngle = 0;
-			var initialCoords = convertPolarToCart(earthOrbitRadius, earthOrbitAngle);
-			earth.position.x = initialCoords.x;
-			earth.position.y = initialCoords.y;
-			earth.receiveShadow = true;
-			earth.castShadow = true;
-			scene.add(earth);
+			var earth = Planetarium.createPlanet();
+			earth.sceneAdd(scene);
 
 			// Moon
 			sphereGeometry = new THREE.SphereGeometry(0.5, 18, 8);
@@ -104,16 +96,13 @@
 				sun.rotation.z += 0.01;
 
 				// Earth orbiting
-				earthOrbitAngle += 0.01;
-				var updatedEarthCoords = convertPolarToCart(earthOrbitRadius, earthOrbitAngle);
-				earth.position.x = updatedEarthCoords.x;
-				earth.position.y = updatedEarthCoords.y;
+				earth.increaseAngle(0.01);
 
 				// Moon orbiting Earth
-				moonOrbitAngle += 0.1;
-				var updatedMoonCoords = convertPolarToCart(moonOrbitRadius, moonOrbitAngle);
-				moon.position.x = updatedMoonCoords.x + earth.position.x;
-				moon.position.y = updatedMoonCoords.y + earth.position.y;
+//				moonOrbitAngle += 0.1;
+//				var updatedMoonCoords = convertPolarToCart(moonOrbitRadius, moonOrbitAngle);
+//				moon.position.x = updatedMoonCoords.x + earth.position.x;
+//				moon.position.y = updatedMoonCoords.y + earth.position.y;
 
 				// Mars orbiting
 				marsOrbitAngle += 0.02;
