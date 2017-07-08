@@ -1,127 +1,144 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset=utf-8>
-		<title>Solar system</title>
-		<style>
-			body { margin: 0; }
-			canvas { width: 100%; height: 100% }
-		</style>
-	</head>
-	<body>
-		<script src="js/three.js"></script>
-		<script src="js/OrbitControls.js"></script>
-		<script src="js/planetarium.js"></script>
-		<script>
-			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+<head>
+	<meta charset=utf-8>
+	<title>Solar system</title>
+	<style>
+		body {
+			margin: 0;
+		}
 
-			var renderer = new THREE.WebGLRenderer();
-			renderer.setSize(window.innerWidth, window.innerHeight);
-			renderer.shadowMap.enabled = true;
+		canvas {
+			width: 100%;
+			height: 100%
+		}
+	</style>
+</head>
+<body>
+<script src="js/three.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/planetarium.js"></script>
+<script>
+	var scene = new THREE.Scene();
+	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-			// Add the orbit controls
-			var controls = new THREE.OrbitControls(camera, renderer.domElement);
-			controls.target = new THREE.Vector3(0, 0, 0);
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.shadowMap.enabled = true;
 
-			document.body.appendChild(renderer.domElement);
+	// Add the orbit controls
+	var controls = new THREE.OrbitControls(camera, renderer.domElement);
+	controls.target = new THREE.Vector3(0, 0, 0);
+
+	document.body.appendChild(renderer.domElement);
 
 
-			// Sun
-			var sphereGeometry = new THREE.SphereGeometry(10, 18, 8);
-			var sunTexture = new THREE.ImageUtils.loadTexture('textures/sun.jpg');
-			var material = new THREE.MeshBasicMaterial({map: sunTexture});
-			var sun = new THREE.Mesh(sphereGeometry, material);
+	// Sun
+	var sun = null;
+	var sphereGeometry = new THREE.SphereGeometry(10, 18, 8);
+	var textureLoader = new THREE.TextureLoader();
+	textureLoader.load('textures/sun.jpg',
+		function (texture) {
+			var material = new THREE.MeshBasicMaterial({map: texture});
+			sun = new THREE.Mesh(sphereGeometry, material);
 			sun.castShadow = true;
 			scene.add(sun);
+		},
+		function (xhr) {
+			console.log('Loading Sun texture: ' + Math.round(xhr.loaded / xhr.total * 100) + '% loaded');
+		},
+		function (xhr) {
+			console.log('An error happened');
+		}
+	);
 
-			// Sun light
-			var sunLight = new THREE.PointLight(0xffee88, 1, 0);
-			scene.add(sunLight);
+	// Sun light
+	var sunLight = new THREE.PointLight(0xffee88, 1, 0);
+	scene.add(sunLight);
 
-			// Earth
-			var earth = Planetarium.createPlanet();
-			earth.sceneAdd(scene);
+	// Earth
+	var earth = Planetarium.createPlanet();
+	earth.sceneAdd(scene);
 
-			// Moon
-			sphereGeometry = new THREE.SphereGeometry(0.5, 18, 8);
-			var moonTexture = THREE.ImageUtils.loadTexture('textures/moon.jpg');
-			var moonMaterial = new THREE.MeshLambertMaterial({map: moonTexture});
-			var moon = new THREE.Mesh(sphereGeometry, moonMaterial);
-			var moonOrbitRadius = 6;
-			var moonOrbitAngle = 0;
-			initialCoords = convertPolarToCart(moonOrbitRadius, moonOrbitAngle);
-			moon.position.x = initialCoords.x;
-			moon.position.y = initialCoords.y;
-			scene.add(moon);
+	// Moon
+	sphereGeometry = new THREE.SphereGeometry(0.5, 18, 8);
+	var moonTexture = THREE.ImageUtils.loadTexture('textures/moon.jpg');
+	var moonMaterial = new THREE.MeshLambertMaterial({map: moonTexture});
+	var moon = new THREE.Mesh(sphereGeometry, moonMaterial);
+	var moonOrbitRadius = 6;
+	var moonOrbitAngle = 0;
+	initialCoords = convertPolarToCart(moonOrbitRadius, moonOrbitAngle);
+	moon.position.x = initialCoords.x;
+	moon.position.y = initialCoords.y;
+	scene.add(moon);
 
-			// Mars
-			sphereGeometry = new THREE.SphereGeometry(1, 18, 8);
-			var marsMaterial = new THREE.MeshLambertMaterial({color: 0xff0000});
-			var mars = new THREE.Mesh(sphereGeometry, marsMaterial);
-			var marsOrbitRadius = 60;
-			var marsOrbitAngle = 45;
-			initialCoords = convertPolarToCart(marsOrbitRadius, marsOrbitAngle);
-			mars.position.x = initialCoords.x;
-			mars.position.y = initialCoords.y;
-			scene.add(mars);
+	// Mars
+	sphereGeometry = new THREE.SphereGeometry(1, 18, 8);
+	var marsMaterial = new THREE.MeshLambertMaterial({color: 0xff0000});
+	var mars = new THREE.Mesh(sphereGeometry, marsMaterial);
+	var marsOrbitRadius = 60;
+	var marsOrbitAngle = 45;
+	initialCoords = convertPolarToCart(marsOrbitRadius, marsOrbitAngle);
+	mars.position.x = initialCoords.x;
+	mars.position.y = initialCoords.y;
+	scene.add(mars);
 
-			// Jupiter
-			sphereGeometry = new THREE.SphereGeometry(4, 18, 8);
-			var jupiterTexture = new THREE.ImageUtils.loadTexture('textures/jupiter.jpg');
-			var jupiterMaterial = new THREE.MeshLambertMaterial({map: jupiterTexture});
-			var jupiter = new THREE.Mesh(sphereGeometry, jupiterMaterial);
-			var jupiterOrbitRadius = 80;
-			var jupiterOrbitAngle = 60;
-			initialCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
-			jupiter.position.x = initialCoords.x;
-			jupiter.position.y = initialCoords.y;
-			jupiter.receiveShadow = true;
-			jupiter.castShadow = true;
-			scene.add(jupiter);
+	// Jupiter
+	sphereGeometry = new THREE.SphereGeometry(4, 18, 8);
+	var jupiterTexture = new THREE.ImageUtils.loadTexture('textures/jupiter.jpg');
+	var jupiterMaterial = new THREE.MeshLambertMaterial({map: jupiterTexture});
+	var jupiter = new THREE.Mesh(sphereGeometry, jupiterMaterial);
+	var jupiterOrbitRadius = 80;
+	var jupiterOrbitAngle = 60;
+	initialCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
+	jupiter.position.x = initialCoords.x;
+	jupiter.position.y = initialCoords.y;
+	jupiter.receiveShadow = true;
+	jupiter.castShadow = true;
+	scene.add(jupiter);
 
-			camera.position.z = 125;
+	camera.position.z = 125;
 
-			function convertPolarToCart(rad, phi) {
-				return {
-					x: rad * Math.cos(phi),
-					y: rad * Math.sin(phi)
-				}
-			}
+	function convertPolarToCart(rad, phi) {
+		return {
+			x: rad * Math.cos(phi),
+			y: rad * Math.sin(phi)
+		}
+	}
 
-			function render() {
-				requestAnimationFrame(render);
+	function render() {
+		requestAnimationFrame(render);
 
-				// Sun rotation
-				sun.rotation.z += 0.01;
+		// Sun rotation
+		sun.rotation.z += 0.01;
 
-				// Earth orbiting
-				earth.increaseAngle(0.01);
+		// Earth orbiting
+		earth.increaseAngle(0.01);
 
-				// Moon orbiting Earth
+		// Moon orbiting Earth
 //				moonOrbitAngle += 0.1;
 //				var updatedMoonCoords = convertPolarToCart(moonOrbitRadius, moonOrbitAngle);
 //				moon.position.x = updatedMoonCoords.x + earth.position.x;
 //				moon.position.y = updatedMoonCoords.y + earth.position.y;
 
-				// Mars orbiting
-				marsOrbitAngle += 0.02;
-				var updatedMarsCoords = convertPolarToCart(marsOrbitRadius, marsOrbitAngle);
-				mars.position.x = updatedMarsCoords.x;
-				mars.position.y = updatedMarsCoords.y;
+		// Mars orbiting
+		marsOrbitAngle += 0.02;
+		var updatedMarsCoords = convertPolarToCart(marsOrbitRadius, marsOrbitAngle);
+		mars.position.x = updatedMarsCoords.x;
+		mars.position.y = updatedMarsCoords.y;
 
-				// Jupiter
-				jupiterOrbitAngle += 0.018;
-				var updatedJupiterCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
-				jupiter.position.x = updatedJupiterCoords.x;
-				jupiter.position.y = updatedJupiterCoords.y;
+		// Jupiter
+		jupiterOrbitAngle += 0.018;
+		var updatedJupiterCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
+		jupiter.position.x = updatedJupiterCoords.x;
+		jupiter.position.y = updatedJupiterCoords.y;
 
-				controls.update();
+		controls.update();
 
-				renderer.render(scene, camera);
-			}
+		renderer.render(scene, camera);
+	}
 
-			render();
-		</script>
-	</body>
+	render();
+</script>
+</body>
 </html>

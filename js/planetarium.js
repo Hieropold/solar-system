@@ -45,4 +45,4 @@
 		}
 	}
 
-} (window, THREE));
+}(window, THREE));
