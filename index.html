@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <html>
 <head>
 	<meta charset=utf-8>
@@ -6,139 +8,351 @@
 	<style>
 		body {
 			margin: 0;
+			overflow: hidden;
+			background: #000;
 		}
 
 		canvas {
 			width: 100%;
-			height: 100%
+			height: 100%;
+		}
+
+		#label-container {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+			z-index: 1000;
+		}
+
+		.planet-label {
+			position: absolute;
+			color: white;
+			font-family: Arial, sans-serif;
+			font-size: 14px;
+			background: rgba(0, 0, 0, 0.5);
+			padding: 2px 6px;
+			border-radius: 3px;
+			pointer-events: none;
+			white-space: nowrap;
+			transform: translate(-50%, -100%);
+			margin-top: -10px;
 		}
 	</style>
 </head>
 <body>
-<script src="js/three.js"></script>
-<script src="js/OrbitControls.js"></script>
-<script src="js/planetarium.js"></script>
-<script>
-	var scene = new THREE.Scene();
-	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+<div id="label-container"></div>
+<script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+	"imports": {
+		"three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+		"three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+	}
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-	var renderer = new THREE.WebGLRenderer();
-	renderer.setSize(window.innerWidth, window.innerHeight);
-	renderer.shadowMap.enabled = true;
+// Scene setup
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
 
-	// Add the orbit controls
-	var controls = new THREE.OrbitControls(camera, renderer.domElement);
-	controls.target = new THREE.Vector3(0, 0, 0);
+// Controls setup
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
 
-	document.body.appendChild(renderer.domElement);
+// Lighting setup
+const ambientLight = new THREE.AmbientLight(0x606060, 1.0);
+scene.add(ambientLight);
 
+// Label container
+const labelContainer = document.getElementById('label-container');
 
-	// Sun
-	var sun = null;
-	var sphereGeometry = new THREE.SphereGeometry(10, 18, 8);
-	var textureLoader = new THREE.TextureLoader();
-	textureLoader.load('textures/sun.jpg',
-		function (texture) {
-			var material = new THREE.MeshBasicMaterial({map: texture});
-			sun = new THREE.Mesh(sphereGeometry, material);
-			sun.castShadow = true;
-			scene.add(sun);
-		},
-		function (xhr) {
-			console.log('Loading Sun texture: ' + Math.round(xhr.loaded / xhr.total * 100) + '% loaded');
-		},
-		function (xhr) {
-			console.log('An error happened');
-		}
-	);
+// Function to create a label element
+function createLabel(text) {
+	const label = document.createElement('div');
+	label.className = 'planet-label';
+	label.textContent = text;
+	labelContainer.appendChild(label);
+	return label;
+}
 
-	// Sun light
-	var sunLight = new THREE.PointLight(0xffee88, 1, 0);
-	scene.add(sunLight);
+// Function to update label position
+function updateLabelPosition(label, position) {
+	const vector = position.clone().project(camera);
+	const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+	const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+	
+	// Only show label if it's in front of the camera
+	if (vector.z < 1) {
+		label.style.display = 'block';
+		label.style.left = x + 'px';
+		label.style.top = y + 'px';
+	} else {
+		label.style.display = 'none';
+	}
+}
 
+// Sun
+const sunGeometry = new THREE.SphereGeometry(10, 32, 32);
+const textureLoader = new THREE.TextureLoader();
+let sun;
+const sunLabel = createLabel('Sun');
+
+textureLoader.load(
+	'textures/sun.jpg',
+	(texture) => {
+		const material = new THREE.MeshBasicMaterial({ 
+			map: texture,
+			color: 0xffee88,
+			transparent: true,
+			opacity: 0.9
+		});
+		sun = new THREE.Mesh(sunGeometry, material);
+		sun.position.set(0, 0, 0);
+		sun.castShadow = true;
+		scene.add(sun);
+	},
+	(xhr) => {
+		console.log('Loading Sun texture: ' + Math.round(xhr.loaded / xhr.total * 100) + '% loaded');
+	},
+	(error) => {
+		console.error('Error loading Sun texture:', error);
+		const material = new THREE.MeshBasicMaterial({ 
+			color: 0xffee88,
+			transparent: true,
+			opacity: 0.9
+		});
+		sun = new THREE.Mesh(sunGeometry, material);
+		sun.position.set(0, 0, 0);
+		sun.castShadow = true;
+		scene.add(sun);
+	}
+);
+
+// Sun light
+const sunLight = new THREE.PointLight(0xffee88, 5, 0);
+sunLight.position.set(0, 0, 0);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 2048;
+sunLight.shadow.mapSize.height = 2048;
+sunLight.shadow.camera.near = 0.5;
+sunLight.shadow.camera.far = 500;
+scene.add(sunLight);
+
+// Earth
+const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
+const earthMaterial = new THREE.MeshPhongMaterial({ 
+	color: 0x2233ff,
+	shininess: 30,
+	specular: 0x333333
+});
+const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+earth.castShadow = true;
+earth.receiveShadow = true;
+scene.add(earth);
+const earthLabel = createLabel('Earth');
+
+// Moon
+const moonGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+let moon;
+const moonLabel = createLabel('Moon');
+textureLoader.load(
+	'textures/moon.jpg',
+	(texture) => {
+		const material = new THREE.MeshPhongMaterial({ 
+			map: texture,
+			shininess: 0,
+			specular: 0x111111
+		});
+		moon = new THREE.Mesh(moonGeometry, material);
+		moon.castShadow = true;
+		moon.receiveShadow = true;
+		scene.add(moon);
+	},
+	undefined,
+	(error) => {
+		console.error('Error loading Moon texture:', error);
+		const material = new THREE.MeshPhongMaterial({ 
+			color: 0xcccccc,
+			shininess: 0,
+			specular: 0x111111
+		});
+		moon = new THREE.Mesh(moonGeometry, material);
+		moon.castShadow = true;
+		moon.receiveShadow = true;
+		scene.add(moon);
+	}
+);
+
+// Mars
+const marsGeometry = new THREE.SphereGeometry(1, 32, 32);
+const marsMaterial = new THREE.MeshPhongMaterial({ 
+	color: 0xff0000,
+	shininess: 30,
+	specular: 0x333333
+});
+const mars = new THREE.Mesh(marsGeometry, marsMaterial);
+mars.castShadow = true;
+mars.receiveShadow = true;
+scene.add(mars);
+const marsLabel = createLabel('Mars');
+
+// Jupiter
+const jupiterGeometry = new THREE.SphereGeometry(4, 32, 32);
+let jupiter;
+const jupiterLabel = createLabel('Jupiter');
+textureLoader.load(
+	'textures/jupiter.jpg',
+	(texture) => {
+		const material = new THREE.MeshPhongMaterial({ 
+			map: texture,
+			shininess: 30,
+			specular: 0x333333
+		});
+		jupiter = new THREE.Mesh(jupiterGeometry, material);
+		jupiter.castShadow = true;
+		jupiter.receiveShadow = true;
+		scene.add(jupiter);
+	},
+	undefined,
+	(error) => {
+		console.error('Error loading Jupiter texture:', error);
+		const material = new THREE.MeshPhongMaterial({ 
+			color: 0xffcc00,
+			shininess: 30,
+			specular: 0x333333
+		});
+		jupiter = new THREE.Mesh(jupiterGeometry, material);
+		jupiter.castShadow = true;
+		jupiter.receiveShadow = true;
+		scene.add(jupiter);
+	}
+);
+
+// Orbit parameters
+const earthOrbitRadius = 40;
+const earthOrbitAngle = 0;
+const moonOrbitRadius = 6;
+const moonOrbitAngle = 0;
+const marsOrbitRadius = 60;
+const marsOrbitAngle = 45;
+const jupiterOrbitRadius = 80;
+const jupiterOrbitAngle = 60;
+
+// Initial positions
+function setInitialPositions() {
 	// Earth
-	var earth = Planetarium.createPlanet();
-	earth.sceneAdd(scene);
+	const earthCoords = convertPolarToCart(earthOrbitRadius, earthOrbitAngle);
+	earth.position.x = earthCoords.x;
+	earth.position.y = earthCoords.y;
 
 	// Moon
-	sphereGeometry = new THREE.SphereGeometry(0.5, 18, 8);
-	var moonTexture = THREE.ImageUtils.loadTexture('textures/moon.jpg');
-	var moonMaterial = new THREE.MeshLambertMaterial({map: moonTexture});
-	var moon = new THREE.Mesh(sphereGeometry, moonMaterial);
-	var moonOrbitRadius = 6;
-	var moonOrbitAngle = 0;
-	initialCoords = convertPolarToCart(moonOrbitRadius, moonOrbitAngle);
-	moon.position.x = initialCoords.x;
-	moon.position.y = initialCoords.y;
-	scene.add(moon);
+	const moonCoords = convertPolarToCart(moonOrbitRadius, moonOrbitAngle);
+	if (moon) {
+		moon.position.x = moonCoords.x + earth.position.x;
+		moon.position.y = moonCoords.y + earth.position.y;
+	}
 
 	// Mars
-	sphereGeometry = new THREE.SphereGeometry(1, 18, 8);
-	var marsMaterial = new THREE.MeshLambertMaterial({color: 0xff0000});
-	var mars = new THREE.Mesh(sphereGeometry, marsMaterial);
-	var marsOrbitRadius = 60;
-	var marsOrbitAngle = 45;
-	initialCoords = convertPolarToCart(marsOrbitRadius, marsOrbitAngle);
-	mars.position.x = initialCoords.x;
-	mars.position.y = initialCoords.y;
-	scene.add(mars);
+	const marsCoords = convertPolarToCart(marsOrbitRadius, marsOrbitAngle);
+	mars.position.x = marsCoords.x;
+	mars.position.y = marsCoords.y;
 
 	// Jupiter
-	sphereGeometry = new THREE.SphereGeometry(4, 18, 8);
-	var jupiterTexture = new THREE.ImageUtils.loadTexture('textures/jupiter.jpg');
-	var jupiterMaterial = new THREE.MeshLambertMaterial({map: jupiterTexture});
-	var jupiter = new THREE.Mesh(sphereGeometry, jupiterMaterial);
-	var jupiterOrbitRadius = 80;
-	var jupiterOrbitAngle = 60;
-	initialCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
-	jupiter.position.x = initialCoords.x;
-	jupiter.position.y = initialCoords.y;
-	jupiter.receiveShadow = true;
-	jupiter.castShadow = true;
-	scene.add(jupiter);
-
-	camera.position.z = 125;
-
-	function convertPolarToCart(rad, phi) {
-		return {
-			x: rad * Math.cos(phi),
-			y: rad * Math.sin(phi)
-		}
+	const jupiterCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
+	if (jupiter) {
+		jupiter.position.x = jupiterCoords.x;
+		jupiter.position.y = jupiterCoords.y;
 	}
+}
 
-	function render() {
-		requestAnimationFrame(render);
+function convertPolarToCart(rad, phi) {
+	return {
+		x: rad * Math.cos(phi),
+		y: rad * Math.sin(phi)
+	};
+}
 
-		// Sun rotation
+// Camera position
+camera.position.z = 125;
+
+// Animation variables
+let earthAngle = 0;
+let moonAngle = 0;
+let marsAngle = 45;
+let jupiterAngle = 60;
+
+// Handle window resize
+window.addEventListener('resize', onWindowResize, false);
+
+function onWindowResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+// Animation loop
+function animate() {
+	requestAnimationFrame(animate);
+
+	// Sun rotation
+	if (sun) {
 		sun.rotation.z += 0.01;
-
-		// Earth orbiting
-		earth.increaseAngle(0.01);
-
-		// Moon orbiting Earth
-//				moonOrbitAngle += 0.1;
-//				var updatedMoonCoords = convertPolarToCart(moonOrbitRadius, moonOrbitAngle);
-//				moon.position.x = updatedMoonCoords.x + earth.position.x;
-//				moon.position.y = updatedMoonCoords.y + earth.position.y;
-
-		// Mars orbiting
-		marsOrbitAngle += 0.02;
-		var updatedMarsCoords = convertPolarToCart(marsOrbitRadius, marsOrbitAngle);
-		mars.position.x = updatedMarsCoords.x;
-		mars.position.y = updatedMarsCoords.y;
-
-		// Jupiter
-		jupiterOrbitAngle += 0.018;
-		var updatedJupiterCoords = convertPolarToCart(jupiterOrbitRadius, jupiterOrbitAngle);
-		jupiter.position.x = updatedJupiterCoords.x;
-		jupiter.position.y = updatedJupiterCoords.y;
-
-		controls.update();
-
-		renderer.render(scene, camera);
+		updateLabelPosition(sunLabel, sun.position);
 	}
 
-	render();
+	// Earth orbiting
+	earthAngle += 0.01;
+	const earthCoords = convertPolarToCart(earthOrbitRadius, earthAngle);
+	earth.position.x = earthCoords.x;
+	earth.position.y = earthCoords.y;
+	updateLabelPosition(earthLabel, earth.position);
+
+	// Moon orbiting Earth
+	moonAngle += 0.1;
+	const moonCoords = convertPolarToCart(moonOrbitRadius, moonAngle);
+	if (moon) {
+		moon.position.x = moonCoords.x + earth.position.x;
+		moon.position.y = moonCoords.y + earth.position.y;
+		updateLabelPosition(moonLabel, moon.position);
+	}
+
+	// Mars orbiting
+	marsAngle += 0.02;
+	const marsCoords = convertPolarToCart(marsOrbitRadius, marsAngle);
+	mars.position.x = marsCoords.x;
+	mars.position.y = marsCoords.y;
+	updateLabelPosition(marsLabel, mars.position);
+
+	// Jupiter orbiting
+	jupiterAngle += 0.018;
+	const jupiterCoords = convertPolarToCart(jupiterOrbitRadius, jupiterAngle);
+	if (jupiter) {
+		jupiter.position.x = jupiterCoords.x;
+		jupiter.position.y = jupiterCoords.y;
+		updateLabelPosition(jupiterLabel, jupiter.position);
+	}
+
+	controls.update();
+	renderer.render(scene, camera);
+}
+
+// Initialize positions and start animation
+setInitialPositions();
+animate();
 </script>
 </body>
 </html>
